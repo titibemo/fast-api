@@ -17,8 +17,8 @@
 # # Erreur: "password too short"
 # ```
  
-from fastapi import FastAPI, Query
-from typing import Optional
+from fastapi import FastAPI
+import uvicorn
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 app = FastAPI(
@@ -59,5 +59,4 @@ async def create_password(password: Password):
     return password
     
 if __name__ == "__main__":
-    import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8002)

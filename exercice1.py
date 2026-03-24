@@ -10,9 +10,10 @@
 
 # Testez avec une route POST `/users` qui accepte le modèle.
 
-from fastapi import FastAPI, Query
+from fastapi import FastAPI
 from typing import Optional
 from pydantic import BaseModel, EmailStr, Field
+import uvicorn
 
 app = FastAPI(
     title="FastAPI Hello World Demo",
@@ -25,7 +26,7 @@ class User(BaseModel):
     id: int
     username: str = Field(..., min_length=2, max_length=50)
     email: EmailStr
-    age: Optional[int] = Field(..., gt=0, le=150)
+    age: Optional[int] = Field(None, gt=0, le=150)
     is_active: bool = True
     
     
@@ -34,5 +35,4 @@ async def create_user(user: User):
     return user
     
 if __name__ == "__main__":
-    import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

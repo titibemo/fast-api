@@ -11,9 +11,10 @@
 #   - `email`: email du fournisseur
 #   - `phone`: téléphone (optionnel)
 
-from fastapi import FastAPI, Query
+from fastapi import FastAPI
 from typing import Optional
 from pydantic import BaseModel, EmailStr, Field
+import uvicorn
 from enum import Enum
 
 app = FastAPI(
@@ -48,5 +49,4 @@ async def create_product(product: Product):
     
     
 if __name__ == "__main__":
-    import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8003)
