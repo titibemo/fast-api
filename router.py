@@ -2,7 +2,9 @@ from fastapi import APIRouter, FastAPI
 import uvicorn
 from typing import Optional
 from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
+from pydantic_settings import BaseSettings
 from enum import Enum
+from datetime import datetime
 
 # TODO docs https://fastapi.tiangolo.com/reference/apirouter/#fastapi.APIRouter.include_router
 
@@ -17,6 +19,10 @@ internal_router = APIRouter()
 exercice_1 = APIRouter()
 exercice_2 = APIRouter()
 exercice_3 = APIRouter()
+exercice_4 = APIRouter()
+exercice_5 = APIRouter()
+exercice_6 = APIRouter()
+exercice_7 = APIRouter()
 
 ############################################################ CLASS ->
 
@@ -58,7 +64,6 @@ class Password(BaseModel):
         return self
     
 # exercice 3
-
 class Category(str, Enum):
     ELECTRONICS = "electronics"
     CLOTHING = "clothing"
@@ -76,6 +81,82 @@ class Product(BaseModel):
     category: Category
     stock: int = Field(..., ge=0)
     supplier: Supplier
+    
+# exercice 4
+class Item(BaseModel):
+    product_id: int
+    quantity: int = Field(..., gt=0)
+    price: float = Field(..., gt=0)
+    total: Optional[float]
+    
+    @model_validator(mode='after')
+    def calculate_total(self):
+        self.total = self.quantity * self.price
+        return self
+
+class Order(BaseModel):
+    order_id: str
+    customer_email: EmailStr
+    items: list[Item]
+    
+    @model_validator(mode='after')
+    def validate_items(self):
+        if not self.items:
+            raise ValueError("Order must have at least one item")
+        return self
+    
+# exercice 5
+class ApiResponse(BaseModel):
+    success: bool
+    data: dict
+    message: str
+    timestamp: str
+    
+    @model_validator(mode='after')
+    @classmethod
+    def add_timestamp(cls, values):
+        values.timestamp = datetime.now().isoformat()
+        return values
+    
+# exercice 6 TODO
+class Settings(BaseSettings):
+    app_name: str = Field(..., env='APP_NAME')
+    debug: bool = Field(False, env='DEBUG')
+    database_url: str = Field(..., env='DATABASE_URL')
+    secret_key: str = Field(..., env='SECRET_KEY')
+    api_v1_prefix: str = Field("/api/v1", env='API_V1_PREFIX')
+
+# exercice 7
+# **Énoncé**:
+# Créez un modèle `Événement` avec:
+# - `type`: "online" ou "offline"
+# - `title`: titre (requis)
+# - `location`: obligatoire si type="offline", sinon facultatif
+# - `url`: obligatoire si type="online", sinon facultatif
+# - `max_participants`: entier (>= 1)
+
+# **Indices**:
+# - Utilisez `model_validator` pour la logique conditionnelle
+# - Accédez à `self.type` pour vérifier le type
+# - Levez `ValueError` si la validation échoue
+class TypeCategory(str, Enum):
+    ONLINE = "online"
+    OFFLINE = "offline"
+
+class Event(BaseModel):
+    type: TypeCategory
+    title: str = Field(..., min_length=2, max_length=50)
+    location: Optional[str]
+    url: Optional[str]
+    max_participants: int = Field(..., gt=0)
+
+    @model_validator(mode='after')
+    def validate_type(self):
+        if self.type == TypeCategory.OFFLINE and not self.location:
+            raise ValueError("Location is required for offline events")
+        if self.type == TypeCategory.ONLINE and not self.url:
+            raise ValueError("URL is required for online events")
+        return self
     
 ############################################################
 
@@ -96,9 +177,35 @@ async def create_password(password: Password):
 async def create_product(product: Product):
     return product
 
+# route exo 4
+@exercice_4.post("/orders", response_model=Order, status_code=201, tags=["orders"])
+async def create_order(order: Order):
+    return order
+
+# route exo 5
+@exercice_5.post("/api_response", response_model=ApiResponse, status_code=201, tags=["api_response"])
+async def create_api_response(api_response: ApiResponse):
+    return api_response
+
+# route exo 6
+@exercice_6.post("/settings", response_model=Settings, status_code=201, tags=["settings"])
+async def create_settings(settings: Settings):
+    return settings
+
+# route exo 7
+@exercice_7.post("/events", response_model=Event, status_code=201, tags=["events"])
+async def create_event(event: Event):
+    return event
+
+# router
+
 internal_router.include_router(exercice_1)
 internal_router.include_router(exercice_2)
 internal_router.include_router(exercice_3)
+internal_router.include_router(exercice_4)
+internal_router.include_router(exercice_5)
+internal_router.include_router(exercice_6)
+internal_router.include_router(exercice_7)
 app.include_router(internal_router)
 
 
