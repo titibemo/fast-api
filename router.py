@@ -4,6 +4,7 @@ from typing import Optional
 from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 from enum import Enum
 
+# TODO docs https://fastapi.tiangolo.com/reference/apirouter/#fastapi.APIRouter.include_router
 
 app = FastAPI(
     title="Test router",
